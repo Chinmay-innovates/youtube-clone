@@ -95,6 +95,14 @@ export const POST = async (req: Request) => {
 				.where(eq(videos.muxUploadId, data.upload_id));
 			break;
 		}
+		case "video.asset.deleted": {
+			const data = payload.data as VideoAssetDeletedWebhookEvent["data"];
+
+			if (!data.upload_id) return new Response("No upload id", { status: 400 });
+
+			await db.delete(videos).where(eq(videos.muxUploadId, data.upload_id));
+			break;
+		}
 	}
 
 	return new Response("Webhook received", { status: 200 });
