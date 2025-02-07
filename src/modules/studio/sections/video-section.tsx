@@ -1,10 +1,11 @@
 "use client";
 
-import { Suspense } from "react";
 import Link from "next/link";
+import { Suspense } from "react";
 import { trpc } from "@/trpc/client";
-import { DEFAULT_DURATION, DEFAULT_LIMIT } from "@/constants";
+import { snakeCaseToTitleCase } from "@/lib/utils";
 import { ErrorBoundary } from "react-error-boundary";
+import { DEFAULT_DURATION, DEFAULT_LIMIT } from "@/constants";
 import { InfiniteScroll } from "@/components/infinite-scroll";
 import {
 	Table,
@@ -15,6 +16,7 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { VideoThumbnail } from "@/modules/videos/ui/components/video-thumbnail";
+import { format } from "date-fns";
 
 export const VideoSection = () => {
 	return (
@@ -70,11 +72,27 @@ const VideoSectionSuspense = () => {
 														duration={video.duration || DEFAULT_DURATION}
 													/>
 												</div>
+												<div className="flex flex-col overflow-hidden gap-y-1">
+													<span className="text-sm line-clamp-1">
+														{video.title}
+													</span>
+													<span className="text-xs text-muted-foreground line-clamp-1">
+														{video.description || "No description"}
+													</span>
+												</div>
 											</div>
 										</TableCell>
-										<TableCell>Visibility</TableCell>
-										<TableCell>Status</TableCell>
-										<TableCell>Date</TableCell>
+										<TableCell>
+											{snakeCaseToTitleCase(video.visibility)}
+										</TableCell>
+										<TableCell className="text-sm truncate">
+											<div className="flex items-center">
+												{snakeCaseToTitleCase(video.muxStatus || "error")}
+											</div>
+										</TableCell>
+										<TableCell>
+											{format(new Date(video.createdAt), "d MMM yyyy")}
+										</TableCell>
 										<TableCell className="text-right">Views</TableCell>
 										<TableCell className="text-right">comments</TableCell>
 										<TableCell className="text-right pr-6">likes</TableCell>

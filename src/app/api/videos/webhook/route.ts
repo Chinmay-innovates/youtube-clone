@@ -1,5 +1,6 @@
 import {
 	VideoAssetCreatedWebhookEvent,
+	VideoAssetDeletedWebhookEvent,
 	VideoAssetErroredWebhookEvent,
 	VideoAssetReadyWebhookEvent,
 	VideoAssetTrackReadyWebhookEvent,
@@ -18,7 +19,8 @@ type WebhookEvent =
 	| VideoAssetCreatedWebhookEvent
 	| VideoAssetReadyWebhookEvent
 	| VideoAssetErroredWebhookEvent
-	| VideoAssetTrackReadyWebhookEvent;
+	| VideoAssetTrackReadyWebhookEvent
+	| VideoAssetDeletedWebhookEvent;
 export const POST = async (req: Request) => {
 	if (!SIGNING_SECRET) throw new Error("MUX_WEBHOOK_SECRET is not set.");
 
@@ -76,6 +78,19 @@ export const POST = async (req: Request) => {
 					thumbnailUrl,
 					previewUrl,
 					duration,
+				})
+				.where(eq(videos.muxUploadId, data.upload_id));
+			break;
+		}
+		case "video.asset.errored": {
+			const data = payload.data as VideoAssetErroredWebhookEvent["data"];
+
+			if (!data.upload_id) return new Response("No upload id", { status: 400 });
+
+			await db
+				.update(videos)
+				.set({
+					muxStatus: data.status,
 				})
 				.where(eq(videos.muxUploadId, data.upload_id));
 			break;

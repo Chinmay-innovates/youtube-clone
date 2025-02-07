@@ -13,3 +13,10 @@ export const formatDuration = (duration: number) => {
 		.toString()
 		.padStart(2, "0")}`;
 };
+
+export const snakeCaseToTitleCase = (str: string) => {
+	return str
+		.split("_")
+		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+		.join(" ");
+};
