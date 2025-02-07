@@ -103,6 +103,25 @@ export const POST = async (req: Request) => {
 			await db.delete(videos).where(eq(videos.muxUploadId, data.upload_id));
 			break;
 		}
+		case "video.asset.track.ready": {
+			const data = payload.data as VideoAssetTrackReadyWebhookEvent["data"] & {
+				asset_id: string;
+			};
+			const trackId = data.id;
+			const status = data.status;
+			console.log("TRACK READY");
+
+			if (!data.asset_id) return new Response("No upload id", { status: 400 });
+
+			await db
+				.update(videos)
+				.set({
+					muxTrackId: trackId,
+					muxTrackStatus: status,
+				})
+				.where(eq(videos.muxAssetId, data.asset_id));
+			break;
+		}
 	}
 
 	return new Response("Webhook received", { status: 200 });
