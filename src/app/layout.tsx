@@ -5,6 +5,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
 import { TRPCProvider } from "@/trpc/client";
+import { Toaster } from "sonner";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,7 +23,10 @@ export default function RootLayout({
 		<ClerkProvider afterSignOutUrl="/">
 			<html lang="en">
 				<body className={`${inter.className} antialiased`}>
-					<TRPCProvider>{children}</TRPCProvider>
+					<TRPCProvider>
+						<Toaster richColors />
+						{children}
+					</TRPCProvider>
 				</body>
 			</html>
 		</ClerkProvider>
