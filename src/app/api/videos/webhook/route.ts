@@ -5,11 +5,12 @@ import {
 	VideoAssetTrackReadyWebhookEvent,
 } from "@mux/mux-node/resources/webhooks.mjs";
 import { headers } from "next/headers";
-
-import { mux } from "@/lib/mux";
-import { db } from "@/db";
-import { videos } from "@/db/schema";
 import { eq } from "drizzle-orm";
+
+import { db } from "@/db";
+import { mux } from "@/lib/mux";
+import { videos } from "@/db/schema";
+import { DEFAULT_DURATION } from "@/constants";
 
 const SIGNING_SECRET = process.env.MUX_WEBHOOK_SECRET!;
 
@@ -48,6 +49,33 @@ export const POST = async (req: Request) => {
 				.set({
 					muxAssetId: data.id,
 					muxStatus: data.status,
+				})
+				.where(eq(videos.muxUploadId, data.upload_id));
+			break;
+		}
+		case "video.asset.ready": {
+			const data = payload.data as VideoAssetReadyWebhookEvent["data"];
+			const playbackId = data.playback_ids?.[0].id;
+
+			if (!playbackId) return new Response("No playback id", { status: 400 });
+			if (!data.upload_id) return new Response("No upload id", { status: 400 });
+
+			const thumbnailUrl = `https://image.mux.com/${playbackId}/thumbnail.jpg`;
+			const previewUrl = `https://image.mux.com/${playbackId}/animated.gif`;
+
+			const duration = data.duration
+				? Math.round(data.duration * 1000)
+				: DEFAULT_DURATION;
+
+			await db
+				.update(videos)
+				.set({
+					muxAssetId: data.id,
+					muxStatus: data.status,
+					muxPlaybackId: playbackId,
+					thumbnailUrl,
+					previewUrl,
+					duration,
 				})
 				.where(eq(videos.muxUploadId, data.upload_id));
 			break;
