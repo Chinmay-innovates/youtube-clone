@@ -3,9 +3,7 @@ import { Button } from "@/components/ui/button";
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 import { UserCircle } from "lucide-react";
 
-interface AuthButtonProps {}
-
-export const AuthButton = ({}: AuthButtonProps) => {
+export const AuthButton = () => {
 	return (
 		<>
 			<SignedIn>

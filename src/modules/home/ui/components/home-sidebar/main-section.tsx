@@ -11,8 +11,6 @@ import { useAuth, useClerk } from "@clerk/nextjs";
 import { FlameIcon, HomeIcon, PlaySquareIcon } from "lucide-react";
 import Link from "next/link";
 
-interface MainSectionProps {}
-
 const items = [
 	{
 		title: "Home",
@@ -31,7 +29,7 @@ const items = [
 		icon: FlameIcon,
 	},
 ];
-export const MainSection = ({}: MainSectionProps) => {
+export const MainSection = () => {
 	const clerk = useClerk();
 	const { isSignedIn } = useAuth();
 	return (

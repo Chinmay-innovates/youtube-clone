@@ -1,10 +1,6 @@
 import { SearchIcon } from "lucide-react";
 
-type Props = {
-	// define your props here
-};
-
-export const SearchInput = ({}: Props) => {
+export const SearchInput = () => {
 	return (
 		<form className="flex w-full max-w-[600px]">
 			<div className="relative w-full">

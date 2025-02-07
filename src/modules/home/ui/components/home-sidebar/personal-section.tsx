@@ -11,8 +11,6 @@ import {
 import { HistoryIcon, ListVideoIcon, ThumbsUpIcon } from "lucide-react";
 import Link from "next/link";
 
-interface PersonalSectionProps {}
-
 const items = [
 	{
 		title: "History",
@@ -33,7 +31,7 @@ const items = [
 		auth: true,
 	},
 ];
-export const PersonalSection = ({}: PersonalSectionProps) => {
+export const PersonalSection = () => {
 	const clerk = useClerk();
 	const { isSignedIn } = useAuth();
 	return (
