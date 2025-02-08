@@ -1,9 +1,33 @@
+import { and, eq } from "drizzle-orm";
+
 import { db } from "@/db";
-import { videos } from "@/db/schema";
 import { mux } from "@/lib/mux";
+import { videos, videoUpdateSchema } from "@/db/schema";
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
+import { TRPCError } from "@trpc/server";
 
 export const videosRouter = createTRPCRouter({
+	update: protectedProcedure
+		.input(videoUpdateSchema)
+		.mutation(async ({ ctx, input }) => {
+			const { id: userId } = ctx.user;
+
+			if (!input.id) throw new TRPCError({ code: "BAD_REQUEST" });
+			const [updatedInput] = await db
+				.update(videos)
+				.set({
+					title: input.title,
+					description: input.description,
+					categoryId: input.categoryId,
+					visibility: input.visibility,
+					updatedAt: new Date(),
+				})
+				.where(and(eq(videos.userId, userId), eq(videos.id, input.id)))
+				.returning();
+			if (!updatedInput) throw new TRPCError({ code: "NOT_FOUND" });
+
+			return updatedInput;
+		}),
 	create: protectedProcedure.mutation(async ({ ctx }) => {
 		const { id: userId } = ctx.user;
 
