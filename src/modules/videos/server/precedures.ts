@@ -5,8 +5,23 @@ import { mux } from "@/lib/mux";
 import { videos, videoUpdateSchema } from "@/db/schema";
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
 import { TRPCError } from "@trpc/server";
+import { z } from "zod";
 
 export const videosRouter = createTRPCRouter({
+	remove: protectedProcedure
+		.input(z.object({ id: z.string().uuid() }))
+		.mutation(async ({ ctx, input }) => {
+			const { id: userId } = ctx.user;
+
+			const [removedVideo] = await db
+				.delete(videos)
+				.where(and(eq(videos.userId, userId), eq(videos.id, input.id)))
+				.returning();
+
+			if (!removedVideo) throw new TRPCError({ code: "NOT_FOUND" });
+
+			return removedVideo;
+		}),
 	update: protectedProcedure
 		.input(videoUpdateSchema)
 		.mutation(async ({ ctx, input }) => {
