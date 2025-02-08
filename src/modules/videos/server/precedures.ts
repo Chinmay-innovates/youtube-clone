@@ -6,6 +6,7 @@ import { videos, videoUpdateSchema } from "@/db/schema";
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { UTApi } from "uploadthing/server";
 
 export const videosRouter = createTRPCRouter({
 	restoreThumbnail: protectedProcedure
@@ -20,6 +21,22 @@ export const videosRouter = createTRPCRouter({
 				.limit(1);
 
 			if (!existingVideo) throw new TRPCError({ code: "NOT_FOUND" });
+
+			if (existingVideo.thumbnailKey) {
+				const utApi = new UTApi({
+					token: process.env.UPLOADTHING_TOKEN!,
+				});
+
+				await utApi.deleteFiles(existingVideo.thumbnailKey);
+
+				await db
+					.update(videos)
+					.set({
+						thumbnailUrl: null,
+						thumbnailKey: null,
+					})
+					.where(and(eq(videos.id, input.id), eq(videos.userId, userId)));
+			}
 
 			if (!existingVideo.muxPlaybackId)
 				throw new TRPCError({ code: "BAD_REQUEST" });
