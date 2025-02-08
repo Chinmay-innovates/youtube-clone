@@ -12,6 +12,7 @@ import { db } from "@/db";
 import { mux } from "@/lib/mux";
 import { videos } from "@/db/schema";
 import { DEFAULT_DURATION } from "@/constants";
+import { UTApi } from "uploadthing/server";
 
 const SIGNING_SECRET = process.env.MUX_WEBHOOK_SECRET!;
 
@@ -62,12 +63,24 @@ export const POST = async (req: Request) => {
 			if (!playbackId) return new Response("No playback id", { status: 400 });
 			if (!data.upload_id) return new Response("No upload id", { status: 400 });
 
-			const thumbnailUrl = `https://image.mux.com/${playbackId}/thumbnail.jpg`;
-			const previewUrl = `https://image.mux.com/${playbackId}/animated.gif`;
-
+			const __thumbnailUrl = `https://image.mux.com/${playbackId}/thumbnail.jpg`;
+			const __previewUrl = `https://image.mux.com/${playbackId}/animated.gif`;
 			const duration = data.duration
 				? Math.round(data.duration * 1000)
 				: DEFAULT_DURATION;
+
+			const utApi = new UTApi({ token: process.env.UPLOADTHING_TOKEN! });
+
+			const [uploadedThumbnail, uploadedPreview] =
+				await utApi.uploadFilesFromUrl([__thumbnailUrl, __previewUrl]);
+
+			if (!uploadedThumbnail.data || !uploadedPreview.data)
+				return new Response("Failed to upload thumbnail or preview", {
+					status: 500,
+				});
+
+			const { key: thumbnailKey, url: thumbnailUrl } = uploadedThumbnail.data;
+			const { key: previewKey, url: previewUrl } = uploadedPreview.data;
 
 			await db
 				.update(videos)
@@ -76,7 +89,9 @@ export const POST = async (req: Request) => {
 					muxStatus: data.status,
 					muxPlaybackId: playbackId,
 					thumbnailUrl,
+					thumbnailKey,
 					previewUrl,
+					previewKey,
 					duration,
 				})
 				.where(eq(videos.muxUploadId, data.upload_id));
