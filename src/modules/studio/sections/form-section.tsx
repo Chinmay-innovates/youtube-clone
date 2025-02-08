@@ -318,6 +318,7 @@ const FormSectionSuspense = ({ videoId }: PageProps) => {
 								</div>
 							</div>
 						</div>
+						{/* VISIBILITY */}
 					</div>
 				</div>
 			</form>
