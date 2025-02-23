@@ -13,6 +13,7 @@ import { mux } from "@/lib/mux";
 import { videos } from "@/db/schema";
 import { DEFAULT_DURATION } from "@/constants";
 import { UTApi } from "uploadthing/server";
+import { deleteFilesFromUploadThing } from "@/lib/utils";
 
 const SIGNING_SECRET = process.env.MUX_WEBHOOK_SECRET!;
 
@@ -114,6 +115,21 @@ export const POST = async (req: Request) => {
 			const data = payload.data as VideoAssetDeletedWebhookEvent["data"];
 
 			if (!data.upload_id) return new Response("No upload id", { status: 400 });
+
+			if (!data.id) return new Response("No upload id", { status: 400 });
+
+			const [existingVideo] = await db
+				.select()
+				.from(videos)
+				.where(eq(videos.muxAssetId, data.id))
+				.limit(1);
+
+			if (!existingVideo) return new Response("No video", { status: 400 });
+
+			await deleteFilesFromUploadThing(
+				existingVideo.thumbnailKey,
+				existingVideo.previewKey
+			);
 
 			await db.delete(videos).where(eq(videos.muxUploadId, data.upload_id));
 			break;
