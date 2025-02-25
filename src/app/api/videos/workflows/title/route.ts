@@ -80,7 +80,7 @@ export const { POST } = serve(async (context) => {
 		},
 	});
 
-	const title = body.candidates[0].content.parts[0].text;
+	const title = body.candidates?.[0]?.content.parts?.[0]?.text;
 	if (!title) throw new Error("Title not found");
 
 	// Step 4: Update the video title in the database

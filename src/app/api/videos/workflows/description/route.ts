@@ -79,7 +79,7 @@ export const { POST } = serve(async (context) => {
 		},
 	});
 
-	const description = body.candidates[0].content.parts[0].text;
+	const description = body.candidates?.[0]?.content.parts?.[0]?.text;
 	if (!description) throw new Error("description not found");
 
 	// Step 4: Update the video description in the database
