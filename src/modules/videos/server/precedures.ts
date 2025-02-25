@@ -12,6 +12,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { UTApi } from "uploadthing/server";
 import { deleteFilesFromUploadThing } from "@/lib/utils";
+import { workflow } from "@/lib/workflow";
 
 export const videosRouter = createTRPCRouter({
 	getOne: baseProcedure
@@ -31,6 +32,39 @@ export const videosRouter = createTRPCRouter({
 			if (!existingVideo) throw new TRPCError({ code: "NOT_FOUND" });
 
 			return existingVideo;
+		}),
+	generateTitle: protectedProcedure
+		.input(z.object({ id: z.string().uuid() }))
+		.mutation(async ({ ctx, input }) => {
+			const { id: userId } = ctx.user;
+			const { workflowRunId } = await workflow.trigger({
+				url: `${process.env.UPSTASH_WORKFLOW_URL}/api/videos/workflows/title`,
+				body: { userId, videoId: input.id },
+			});
+
+			return workflowRunId;
+		}),
+	generateDescription: protectedProcedure
+		.input(z.object({ id: z.string().uuid() }))
+		.mutation(async ({ ctx, input }) => {
+			const { id: userId } = ctx.user;
+			const { workflowRunId } = await workflow.trigger({
+				url: `${process.env.UPSTASH_WORKFLOW_URL}/api/videos/workflows/description`,
+				body: { userId, videoId: input.id },
+			});
+
+			return workflowRunId;
+		}),
+	generateThumbnail: protectedProcedure
+		.input(z.object({ id: z.string().uuid() }))
+		.mutation(async ({ ctx, input }) => {
+			const { id: userId } = ctx.user;
+			const { workflowRunId } = await workflow.trigger({
+				url: `${process.env.UPSTASH_WORKFLOW_URL}/api/videos/workflows/title`,
+				body: { userId, videoId: input.id },
+			});
+
+			return workflowRunId;
 		}),
 	restoreThumbnail: protectedProcedure
 		.input(z.object({ id: z.string().uuid() }))
