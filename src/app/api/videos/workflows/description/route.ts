@@ -47,7 +47,7 @@ export const { POST } = serve(async (context) => {
 		return text;
 	});
 
-	// Step 3: Generate title using GEMINI
+	// Step 3: Generate description using GEMINI
 	interface GeminiCandidate {
 		content: {
 			parts: { text: string }[];

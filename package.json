@@ -75,6 +75,7 @@
 		"react-hook-form": "^7.54.2",
 		"react-resizable-panels": "^2.1.7",
 		"recharts": "^2.15.1",
+		"replicate": "^1.0.1",
 		"server-only": "^0.0.1",
 		"sonner": "^1.7.4",
 		"superjson": "^2.2.2",

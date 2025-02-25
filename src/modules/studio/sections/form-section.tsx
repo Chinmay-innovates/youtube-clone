@@ -4,6 +4,7 @@ import { z } from "zod";
 import Link from "next/link";
 import Image from "next/image";
 import { toast } from "sonner";
+import { trpc } from "@/trpc/client";
 import { useRouter } from "next/navigation";
 
 import { Suspense, useState } from "react";
@@ -23,9 +24,10 @@ import {
 	TrashIcon,
 } from "lucide-react";
 
-import { trpc } from "@/trpc/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
 import {
 	Select,
 	SelectContent,
@@ -33,7 +35,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 
 import { videoUpdateSchema } from "@/db/schema";
 import { THUMBNAIL_FALLBACK } from "@/constants";
@@ -56,7 +57,7 @@ import {
 import { VideoPlayer } from "@/modules/videos/ui/components/video-player";
 
 import { ThumbnailUploadModal } from "@/modules/studio/ui/components/thumbnail-upload-modal";
-import { Skeleton } from "@/components/ui/skeleton";
+import { ThumbnailGenerateModal } from "@/modules/studio/ui/components/thumbnail-generate-modal";
 
 interface PageProps {
 	videoId: string;
@@ -134,6 +135,8 @@ const FormSectionSuspense = ({ videoId }: PageProps) => {
 	const utils = trpc.useUtils();
 
 	const [thumbnailModalOpen, setThumbnailModalOpen] = useState(false);
+	const [thumbnailGenerateModalOpen, setThumbnailGenerateModalOpen] =
+		useState(false);
 
 	const [video] = trpc.studio.getOne.useSuspenseQuery({ id: videoId });
 	const [categories] = trpc.categories.getMany.useSuspenseQuery();
@@ -166,17 +169,6 @@ const FormSectionSuspense = ({ videoId }: PageProps) => {
 			utils.studio.getMany.invalidate();
 			utils.studio.getOne.invalidate({ id: videoId });
 			toast.success("Thumbnail restored");
-		},
-		onError: () => {
-			toast.error("Something went wrong");
-		},
-	});
-
-	const generateThumbnail = trpc.videos.generateThumbnail.useMutation({
-		onSuccess: () => {
-			toast.success("Background job started", {
-				description: "This may take a few minutes",
-			});
 		},
 		onError: () => {
 			toast.error("Something went wrong");
@@ -233,6 +225,11 @@ const FormSectionSuspense = ({ videoId }: PageProps) => {
 				videoId={videoId}
 				open={thumbnailModalOpen}
 				onOpenChange={setThumbnailModalOpen}
+			/>
+			<ThumbnailGenerateModal
+				videoId={videoId}
+				open={thumbnailGenerateModalOpen}
+				onOpenChange={setThumbnailGenerateModalOpen}
 			/>
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(onSubmit)}>
@@ -385,7 +382,7 @@ const FormSectionSuspense = ({ videoId }: PageProps) => {
 														</DropdownMenuItem>
 														<DropdownMenuItem
 															onClick={() =>
-																generateThumbnail.mutate({ id: videoId })
+																setThumbnailGenerateModalOpen(true)
 															}
 														>
 															<SparklesIcon className="size-4 mr-1" />
